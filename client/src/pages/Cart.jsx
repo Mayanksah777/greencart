@@ -19,8 +19,10 @@ const Cart = () => {
         for (const key in cartItems)
         {
             const product=products.find((item)=>item._id===key)
-            product.quantity=cartItems[key]
-            tempArray.push(product)
+            if(product){
+                product.quantity=cartItems[key]
+                tempArray.push(product)
+            }
         }
         setCartArray(tempArray)
     }
