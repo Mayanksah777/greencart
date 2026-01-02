@@ -13,7 +13,7 @@ export const AppContext = createContext();
 export const AppContextProvider=({children})=>{
 
 const currency =import.meta.env.VITE_CURRENCY;    
-const navigate=useNavigate();
+const navigate=useNavigate();//use to redirect user
 const[user,setUser]=useState(null)
 const[isSeller,setIsSeller]=useState(false)
 const[showUserLogin,setShowUserLogin]=useState(false)
@@ -24,7 +24,7 @@ const[searchQuery,setSearchQuery]=useState({})
 
 //Fetch Seller Status
 
-const fetchSeller = async ()=>{
+const fetchSeller = async ()=>{  //to check whether logged in user is seller or not
     try {
         const { data } = await axios.get('/api/seller/is-auth');
         if( data.success)
@@ -48,12 +48,12 @@ const fetchUser = async()=>{
     try {
         const { data } = await axios.get('api/user/is-auth');
         if(data.success){
-            setUser(data.user)
-            setCartItems(data.user.cartItems)
+            setUser(data.user)// set user data
+            setCartItems(data.user.cartItems) //Loads saved cart
         }
         
     } catch (error) {
-        setUser(null)
+        setUser(null) //clears user on failure
         
     }
 }
@@ -64,7 +64,7 @@ const fetchUser = async()=>{
 //Fetch All Product
 const fetchProducts=async()=>{
 try {
-    const { data } = await axios.get('/api/product/list')
+    const { data } = await axios.get('/api/product/list') //Get request to fetch all products
     if (data.success) {
         setProducts(data.products)  
     }
@@ -79,12 +79,12 @@ try {
 const addToCart=(itemId)=>{
 
     let cartData=structuredClone(cartItems);
-    if(cartData[itemId])
+    if(cartData[itemId])// is product is already in cart?
     {
         cartData[itemId] +=1;
     }
     else{
-        cartData[itemId]=1;
+        cartData[itemId]=1;// first time adding product to cart
     }
     setCartItems(cartData);
     toast.success("Added to Cart")
@@ -112,7 +112,7 @@ const removeFromCart=(itemId)=>{
 }
 //get cart item count function
 
-const getCartCount=()=>{
+const getCartCount=()=>{ // sum quantity
     let totalCount=0;
     for(const item in cartItems)
     {
@@ -121,32 +121,32 @@ const getCartCount=()=>{
     return totalCount;
 }
 
-//Get car total amount
+//Get cart total amount
 const getCartAmount=()=>{
     let totalAmount=0;
     for(const items in cartItems)
     {
-        let itemInfo=products.find((product)=> product._id===items);
+        let itemInfo=products.find((product)=> product._id===items); //from all products , find the one whose ID matches the cart item
         if(cartItems[items]>0)
         {
             totalAmount +=itemInfo.offerPrice * cartItems[items]
         }
     }
-    return Math.floor(totalAmount * 100)/100;
+    return Math.floor(totalAmount * 100)/100; // rounding off to 2 decimal places
 }
 
 useEffect( ()=>{
     fetchUser()
     fetchSeller()
     fetchProducts()
-},[])
+},[]) // useEffect runs only once when app loads to fetch initail data like user auth , seller status and product list 
 
 // Update Database Cart items
 useEffect(()=>{
    
    const updateCart = async()=>{
     try {
-        const { data } = await axios.post('/api/cart/update' , { userId:user._id,  cartItems})
+        const { data } = await axios.post('/api/cart/update' , { userId:user._id,  cartItems}) // send updated cart items to backend and tell it to please save it 
         if(!data.success){
             toast.error(data.message)
         }
@@ -155,13 +155,15 @@ useEffect(()=>{
         toast.error(error.message)
     }
    } 
-   if(user){
+   if(user){ // only runs if user exists 
     updateCart()
    } 
 
 },[cartItems])
 
 const value={navigate,user,setUser,setIsSeller,isSeller,showUserLogin,setShowUserLogin,products,currency,addToCart,updateCartItem,removeFromCart, cartItems,searchQuery,setSearchQuery,getCartAmount,getCartCount,axios,fetchProducts,setCartItems}
+//collecting all global data and func into one obj
+
 
 return<AppContext.Provider value={value}>
     {children}
